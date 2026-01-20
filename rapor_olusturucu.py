@@ -70,6 +70,11 @@ class RaporOlusturucu:
         elif birlesim_turu == 'horizontal':
             # Yan yana birleştir
             if ortak_sutun:
+                # Ortak sütunun tüm DataFrame'lerde olduğunu kontrol et
+                for i, df in enumerate(dfs):
+                    if ortak_sutun not in df.columns:
+                        raise ValueError(f"'{ortak_sutun}' sütunu {sayfa_isimleri[i] if i < len(sayfa_isimleri) else i}. sayfada bulunamadı")
+                
                 birlesik_df = dfs[0]
                 for df in dfs[1:]:
                     birlesik_df = pd.merge(birlesik_df, df, on=ortak_sutun, how='outer')
