@@ -20,6 +20,38 @@ class RaporOlusturucu:
         self.veriler = veriler
         self.rapor_tarihi = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
+    def _benzersiz_sayfa_adi_olustur(self, sayfa_adi: str, kullanilan_isimler: set) -> str:
+        """
+        Excel sayfa adı uzunluk sınırlamasına uygun benzersiz isim oluştur
+        
+        Args:
+            sayfa_adi: Orijinal sayfa adı
+            kullanilan_isimler: Daha önce kullanılan isimler
+            
+        Returns:
+            Benzersiz sayfa adı (max 31 karakter)
+        """
+        # Excel sayfa adı maksimum 31 karakter
+        max_uzunluk = 31
+        
+        if len(sayfa_adi) <= max_uzunluk and sayfa_adi not in kullanilan_isimler:
+            return sayfa_adi
+        
+        # İsmi kısalt
+        kisa_ad = sayfa_adi[:max_uzunluk]
+        
+        # Eğer benzersiz değilse, numaralandır
+        if kisa_ad in kullanilan_isimler:
+            sayac = 1
+            while True:
+                # Numaralı isim oluştur (örn: "Sayfa_1", "Sayfa_2")
+                numarali_ad = f"{sayfa_adi[:max_uzunluk-3]}_{sayac}"
+                if numarali_ad not in kullanilan_isimler:
+                    return numarali_ad
+                sayac += 1
+        
+        return kisa_ad
+    
     def ozet_rapor_olustur(self) -> pd.DataFrame:
         """
         Tüm sayfalar için özet rapor oluştur
@@ -113,10 +145,12 @@ class RaporOlusturucu:
                 ozet_df.to_excel(writer, sheet_name='Özet', index=False)
                 
                 # Her sayfa için detayları ekle
+                kullanilan_isimler = {'Özet'}
                 for sayfa_adi, df in self.veriler.items():
-                    # Excel sayfa adı uzunluk sınırlaması (31 karakter)
-                    kisa_ad = sayfa_adi[:31]
-                    df.to_excel(writer, sheet_name=kisa_ad, index=False)
+                    # Excel sayfa adı için benzersiz isim oluştur
+                    benzersiz_ad = self._benzersiz_sayfa_adi_olustur(sayfa_adi, kullanilan_isimler)
+                    kullanilan_isimler.add(benzersiz_ad)
+                    df.to_excel(writer, sheet_name=benzersiz_ad, index=False)
                 
                 print(f"Özet rapor kaydedildi: {cikti_dosyasi}")
                 
@@ -129,10 +163,13 @@ class RaporOlusturucu:
             elif rapor_turu == 'ayri_sayfalar':
                 # Sadece belirtilen sayfaları kaydet
                 sayfalar = sayfa_isimleri if sayfa_isimleri else list(self.veriler.keys())
+                kullanilan_isimler = set()
                 for sayfa_adi in sayfalar:
                     if sayfa_adi in self.veriler:
-                        kisa_ad = sayfa_adi[:31]
-                        self.veriler[sayfa_adi].to_excel(writer, sheet_name=kisa_ad, index=False)
+                        # Excel sayfa adı için benzersiz isim oluştur
+                        benzersiz_ad = self._benzersiz_sayfa_adi_olustur(sayfa_adi, kullanilan_isimler)
+                        kullanilan_isimler.add(benzersiz_ad)
+                        self.veriler[sayfa_adi].to_excel(writer, sheet_name=benzersiz_ad, index=False)
                 print(f"Seçili sayfalar kaydedildi: {cikti_dosyasi}")
             else:
                 raise ValueError("rapor_turu 'ozet', 'birlesik' veya 'ayri_sayfalar' olmalıdır")
