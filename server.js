@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const app = express();
 const port = 3000;
+const MAX_REPORT_ROWS = 100;
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -74,7 +75,9 @@ app.post('/upload', upload.single('excelFile'), async (req, res) => {
         });
 
         // Clean up uploaded file
-        fs.unlinkSync(req.file.path);
+        fs.unlink(req.file.path, (err) => {
+            if (err) console.error('Error deleting file:', err);
+        });
 
         res.json({
             success: true,
@@ -89,7 +92,7 @@ app.post('/upload', upload.single('excelFile'), async (req, res) => {
 });
 
 // Generate report endpoint
-app.post('/generate-report', express.json(), async (req, res) => {
+app.post('/generate-report', async (req, res) => {
     try {
         const { sheetsData } = req.body;
         
@@ -131,8 +134,8 @@ app.post('/generate-report', express.json(), async (req, res) => {
                 <table>
             `;
 
-            // Add table rows (limit to first 100 rows for performance)
-            const maxRows = Math.min(sheet.data.length, 100);
+            // Add table rows (limit to first MAX_REPORT_ROWS for performance)
+            const maxRows = Math.min(sheet.data.length, MAX_REPORT_ROWS);
             sheet.data.slice(0, maxRows).forEach((row, rowIndex) => {
                 reportHtml += '<tr>';
                 row.forEach(cell => {
@@ -156,7 +159,8 @@ app.post('/generate-report', express.json(), async (req, res) => {
             });
 
             if (sheet.data.length > maxRows) {
-                reportHtml += `<tr><td colspan="${sheet.data[0]?.length || 1}"><em>... ve ${sheet.data.length - maxRows} satır daha</em></td></tr>`;
+                const colCount = sheet.data.length > 0 && sheet.data[0] ? sheet.data[0].length : 1;
+                reportHtml += `<tr><td colspan="${colCount}"><em>... ve ${sheet.data.length - maxRows} satır daha</em></td></tr>`;
             }
 
             reportHtml += '</table>';
