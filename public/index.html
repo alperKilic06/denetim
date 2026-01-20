@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Denetim - Excel Rapor Oluşturucu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Denetim Rapor Uygulaması</h1>
+            <p>Excel dosyanızı yükleyin ve otomatik rapor oluşturun</p>
+        </header>
+
+        <div class="upload-section">
+            <div class="upload-box" id="uploadBox">
+                <div class="upload-icon">📁</div>
+                <h2>Excel Dosyası Yükle</h2>
+                <p>Dosyayı buraya sürükleyin veya tıklayarak seçin</p>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    Dosya Seç
+                </button>
+            </div>
+            
+            <div id="fileInfo" class="file-info" style="display: none;">
+                <p><strong>Seçilen dosya:</strong> <span id="fileName"></span></p>
+                <button class="btn btn-success" id="uploadBtn">Yükle ve İşle</button>
+                <button class="btn btn-secondary" onclick="resetUpload()">İptal</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Excel dosyanız işleniyor...</p>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <h2>📑 Excel Verileri</h2>
+            <div id="sheetsInfo"></div>
+            <button class="btn btn-primary" id="generateReportBtn">Rapor Oluştur</button>
+        </div>
+
+        <div id="report" class="report-section" style="display: none;"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
