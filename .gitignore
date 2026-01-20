@@ -43,3 +43,7 @@ Thumbs.db
 # Output files
 output/
 *.xlsx.bak
+
+# Test files
+test_temp.xlsx
+test_output.xlsx
