@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const ExcelJS = require('exceljs');
 const path = require('path');
@@ -39,8 +40,17 @@ const upload = multer({
 app.use(express.static('public'));
 app.use(express.json());
 
+// Rate limiting for upload endpoint
+const uploadLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 uploads per windowMs
+    message: 'Çok fazla dosya yükleme isteği gönderdiniz. Lütfen daha sonra tekrar deneyin.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 // Excel file upload and processing endpoint
-app.post('/upload', upload.single('excelFile'), async (req, res) => {
+app.post('/upload', uploadLimiter, upload.single('excelFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'Lütfen bir Excel dosyası yükleyin' });
